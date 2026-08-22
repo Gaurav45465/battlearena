@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BattleArena — BGMI Custom Room Tournaments</title>
+<meta name="description" content="BattleArena — free-entry BGMI custom room tournaments.">
+<style>
+:root{--bg:#050711;--card:#0c1220;--line:#26334d;--text:#f4f7ff;--muted:#94a3bb;--cyan:#55e8ff;--blue:#6677ff;--green:#67f2a2;--orange:#ff9d45}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at 70% -10%,#1a2c72 0,#080b18 34%,#050711 65%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(transparent 97%,#ffffff05 100%);background-size:100% 4px;opacity:.18}
+.wrap{max-width:1160px;margin:auto;padding:0 20px}
+nav{height:78px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff12;position:relative;z-index:3}
+.brand{display:flex;align-items:center;gap:11px;font-size:24px;font-weight:1000;letter-spacing:-.5px}.brand em{font-style:normal;color:var(--cyan)}
+.logo{width:45px;height:45px;position:relative;display:grid;place-items:center;border:2px solid var(--cyan);border-radius:13px;background:linear-gradient(145deg,#17294a,#0b1220);box-shadow:0 0 28px #55e8ff38,inset 0 0 20px #55e8ff18;overflow:hidden}
+.logo:before,.logo:after{content:"";position:absolute;width:22px;height:4px;background:var(--cyan);transform:skew(-25deg)}.logo:before{top:11px;left:9px}.logo:after{bottom:11px;right:9px}.logo b{font-size:16px;z-index:1}
+.links{display:flex;gap:22px;color:#b7c2d6;font-size:14px}.links a{color:inherit;text-decoration:none}.links a:hover{color:var(--cyan)}
+.btn{display:inline-block;border:0;border-radius:12px;padding:13px 18px;font-weight:900;cursor:pointer;text-decoration:none;background:linear-gradient(135deg,var(--cyan),#a3f6ff);color:#061018;box-shadow:0 10px 25px #55e8ff18}.btn.dark{background:#141f34;color:#fff;border:1px solid #2c3b57;box-shadow:none}
+.hero{min-height:620px;display:grid;grid-template-columns:1.1fr .9fr;gap:45px;align-items:center;position:relative}
+.hero:after{content:"BATTLE";position:absolute;right:-130px;bottom:15px;font-size:170px;font-weight:1000;color:#ffffff03;transform:skew(-12deg);pointer-events:none}
+.kicker{display:inline-flex;gap:8px;align-items:center;border:1px solid #30425f;background:#0d1729;border-radius:99px;padding:8px 13px;color:var(--cyan);font-weight:800;font-size:13px}.dot{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green)}
+.hero h1{font-size:clamp(44px,6.7vw,78px);line-height:.95;letter-spacing:-3px;margin:20px 0}.hero h1 span{color:var(--cyan)}.hero p{max-width:650px;color:var(--muted);font-size:18px;line-height:1.65}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:27px}
+.hero-art{min-height:430px;border:1px solid #2a3b5b;border-radius:28px;background:linear-gradient(145deg,#111d35,#080d18);position:relative;overflow:hidden;box-shadow:0 30px 90px #0008}
+.hero-art:before{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,#55e8ff1f,transparent 65%);right:-100px;top:-80px}
+.player{position:absolute;right:30px;bottom:-25px;width:230px;height:360px;background:linear-gradient(150deg,#263b62,#0b1120 58%);clip-path:polygon(38% 0,62% 0,72% 10%,92% 20%,100% 65%,78% 100%,20% 100%,0 65%,8% 20%,28% 10%);filter:drop-shadow(0 20px 25px #000)}
+.player:before{content:"";position:absolute;width:92px;height:92px;border-radius:50%;background:#17243b;top:35px;left:69px;border:3px solid #5a6e93}.gun{position:absolute;width:260px;height:23px;background:#101827;right:120px;top:225px;transform:rotate(-18deg);border:2px solid #4a5d7e;border-radius:7px}
+.cross{position:absolute;left:25px;top:70px;color:#55e8ff;font-size:65px;opacity:.8}.hud{position:absolute;left:22px;bottom:24px;width:230px;background:#07101cdd;border:1px solid #32445f;border-radius:14px;padding:13px}.hud b{font-size:24px}.hud small{color:#8fa0bb}.badge{position:absolute;right:22px;top:22px;padding:8px 10px;border-radius:9px;background:#172943;color:var(--green);font-size:12px;font-weight:900}
+section{padding:42px 0}.head{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}.head h2{font-size:31px;margin:0}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px}.card{background:linear-gradient(155deg,#10192a,#0a101d);border:1px solid var(--line);border-radius:19px;padding:21px;box-shadow:0 12px 35px #0003}.tag{color:var(--green);font-size:12px;font-weight:900}.price{font-size:30px;font-weight:1000}.stat{display:flex;justify-content:space-between;border-top:1px solid #ffffff0d;padding:12px 0}.room{color:var(--cyan);font-size:21px;font-weight:1000}
+.video{position:relative;aspect-ratio:16/9;border-radius:22px;overflow:hidden;border:1px solid #30415f;background:linear-gradient(135deg,#111d33,#080c15)}
+.video .scan{position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#55e8ff10 45%,transparent 60%);animation:sweep 3s infinite}
+@keyframes sweep{0%{transform:translateX(-80%)}100%{transform:translateX(80%)}}
+.video .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#55e8ff;color:#061018;font-size:30px;box-shadow:0 0 40px #55e8ff66}.video .caption{position:absolute;left:18px;bottom:16px;background:#07101ddd;border:1px solid #31415c;padding:10px 12px;border-radius:10px}.video .caption b{display:block}.video .caption small{color:#94a3bb}
+.step{position:relative;padding-left:60px}.num{position:absolute;left:19px;top:20px;width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#192944;color:var(--cyan);font-weight:900}
+.support{display:flex;justify-content:space-between;align-items:center;gap:20px;background:linear-gradient(120deg,#10223b,#0c1422);border:1px solid #2b3d5c;border-radius:22px;padding:25px}.wa{background:#26d366;color:#031007}
+footer{border-top:1px solid #ffffff10;margin-top:40px;padding:35px 0;color:#728099;text-align:center}
+.modal{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;padding:16px;z-index:20}.modal.open{display:flex}.box{max-width:550px;width:100%;max-height:90vh;overflow:auto;background:#0d1525;border:1px solid #344563;border-radius:20px;padding:23px}.close{float:right;background:#1a263b;color:#fff;border:0;border-radius:8px;padding:8px 11px}input,select{width:100%;padding:13px;border:1px solid #354561;background:#080e19;color:#fff;border-radius:10px;margin:6px 0 12px}
+.float{position:fixed;right:18px;bottom:18px;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#26d366;color:#031007;text-decoration:none;font-size:27px;font-weight:900;z-index:10;box-shadow:0 8px 30px #0009}
+@media(max-width:780px){.links{display:none}.hero{grid-template-columns:1fr;min-height:auto;padding:55px 0}.hero-art{display:none}.hero h1{letter-spacing:-2px}.support{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+<div class="brand"><div class="logo"><b>BA</b></div>Battle<em>Arena</em></div>
+<div class="links"><a href="#matches">Matches</a><a href="#highlights">Highlights</a><a href="#how">How It Works</a><a href="#support">Support</a></div>
+<a class="btn" href="#matches">Join Match</a>
+</nav>
+
+<header class="hero">
+<div>
+<span class="kicker"><i class="dot"></i> FREE ENTRY • CUSTOM ROOMS</span>
+<h1>YOUR GAME.<br><span>YOUR ARENA.</span></h1>
+<p>BattleArena gives BGMI players a clean tournament experience — register fast, track your slot and get room details when the admin releases them.</p>
+<div class="actions"><a class="btn" href="#matches">REGISTER FREE</a><a class="btn dark" href="#highlights">WATCH HIGHLIGHTS</a></div>
+</div>
+<div class="hero-art">
+<div class="badge">LIVE TOURNAMENT HUB</div><div class="cross">＋</div><div class="gun"></div><div class="player"></div>
+<div class="hud"><small>NEXT MATCH</small><br><b>SOLO BATTLE #01</b><br><small>100 PLAYER CUSTOM ROOM</small></div>
+</div>
+</header>
+
+<section id="matches">
+<div class="head"><div><h2>🔥 Upcoming Matches</h2><p class="muted">Open slots are updated from the tournament system.</p></div></div>
+<div id="matchesGrid" class="grid"></div>
+</section>
+
+<section id="highlights">
+<div class="head"><div><h2>🎬 BGMI Highlights</h2><p class="muted">Apna tournament gameplay/demo video yahan showcase karo.</p></div></div>
+<div class="video">
+<div class="scan"></div><div class="play">▶</div>
+<div class="caption"><b>YOUR TOURNAMENT HIGHLIGHTS</b><small>Replace this demo area with your YouTube/video embed</small></div>
+</div>
+</section>
+
+<section id="how">
+<div class="head"><div><h2>⚡ How It Works</h2><p class="muted">Simple 3-step player journey.</p></div></div>
+<div class="grid">
+<div class="card step"><span class="num">1</span><h3>Register</h3><p class="muted">BGMI name, UID and WhatsApp number submit karo.</p></div>
+<div class="card step"><span class="num">2</span><h3>Get Your Slot</h3><p class="muted">Registration ke baad tumhara slot tournament list mein count hota hai.</p></div>
+<div class="card step"><span class="num">3</span><h3>Enter The Room</h3><p class="muted">Admin room details release karega; details website par show hongi.</p></div>
+</div>
+</section>
+
+<section id="support">
+<div class="support"><div><h2 style="margin:0 0 7px">Need Help?</h2><p class="muted" style="margin:0">Registration, room ID ya tournament issue ke liye support team se WhatsApp par contact karo.</p></div>
+<a class="btn wa" target="_blank" href="https://wa.me/918271027577?text=Hello%20BattleArena%20Support%2C%20I%20need%20help%20with%20a%20tournament.">💬 WhatsApp Support</a></div>
+</section>
+
+<section><div class="card"><h2>My Registration</h2><div id="mine" class="muted">Is device par abhi registration nahi mila.</div></div></section>
+</div>
+<footer>© 2026 BattleArena • Free-entry BGMI tournament platform</footer>
+<a class="float" target="_blank" href="https://wa.me/918271027577?text=Hello%20BattleArena%20Support">☏</a>
+
+<div class="modal" id="modal"><div class="box"><button class="close" onclick="closeReg()">×</button><h2>Register Free</h2><p class="muted">Tournament select karke apni details submit karo.</p>
+<form onsubmit="register(event)"><label>Tournament</label><select id="tid" required></select><label>BGMI Name</label><input id="ign" required><label>BGMI UID</label><input id="uid" required inputmode="numeric"><label>WhatsApp Number</label><input id="wa" required placeholder="+91..." inputmode="tel"><button class="btn">Confirm Registration</button></form></div></div>
+
+<script>
+const KEY='ba_ultimate_demo';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{matches:[{id:1,name:'Solo Battle #01',time:'Tonight • 9:00 PM',slots:100,published:false,room:'',pass:''}],players:[]};
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function openReg(){modal.classList.add('open');tid.innerHTML=db.matches.map(m=>`<option value="${m.id}">${m.name} • ${m.time}</option>`).join('')}
+function closeReg(){modal.classList.remove('open')}
+function register(e){e.preventDefault();let m=db.matches.find(x=>x.id==tid.value),n=db.players.filter(p=>p.matchId==m.id).length;if(n>=m.slots)return alert('Match full');let p={id:Date.now(),matchId:m.id,ign:ign.value.trim(),uid:uid.value.trim(),wa:wa.value.trim()};db.players.push(p);localStorage.setItem('mine',p.id);save();closeReg();alert('Registration successful!')}
+function render(){matchesGrid.innerHTML=db.matches.map(m=>{let n=db.players.filter(p=>p.matchId==m.id).length;return `<div class="card"><span class="tag">● REGISTRATION OPEN</span><h3>${m.name}</h3><p class="muted">${m.time}</p><div class="stat"><span>Entry</span><b class="price">FREE</b></div><div class="stat"><span>Slots</span><b>${n}/${m.slots}</b></div>${m.published?`<p>Room ID <span class="room">${m.room}</span><br>Password <span class="room">${m.pass}</span></p>`:'<p class="muted">Room ID & password match se pehle release honge.</p>'}<button class="btn" onclick="openReg()">REGISTER NOW</button></div>`}).join('');let id=localStorage.getItem('mine'),p=db.players.find(x=>x.id==id);if(p){let m=db.matches.find(x=>x.id==p.matchId);mine.innerHTML=`<b>${p.ign}</b> • UID ${p.uid}<br>${m.name}<br>${m.published?`Room ID: <span class="room">${m.room}</span><br>Password: <span class="room">${m.pass}</span>`:'<span class="muted">Room details abhi release nahi hue.</span>'}`}}
+render();
+</script>
+</body>
+</html>

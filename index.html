@@ -88,23 +88,473 @@ footer{border-top:1px solid #ffffff10;margin-top:40px;padding:35px 0;color:#7280
 <a class="btn wa" target="_blank" href="https://wa.me/918271027577?text=Hello%20BattleArena%20Support%2C%20I%20need%20help%20with%20a%20tournament.">💬 WhatsApp Support</a></div>
 </section>
 
-<section><div class="card"><h2>My Registration</h2><div id="mine" class="muted">Is device par abhi registration nahi mila.</div></div></section>
-</div>
-<footer>© 2026 BattleArena • Free-entry BGMI tournament platform</footer>
-<a class="float" target="_blank" href="https://wa.me/918271027577?text=Hello%20BattleArena%20Support">☏</a>
+<section>
+  <div class="card">
+    <h2>My Registration</h2>
+    <div id="mine" class="muted">
+      Is device par abhi registration nahi mila.
+    </div>
+  </div>
+</section>
 
-<div class="modal" id="modal"><div class="box"><button class="close" onclick="closeReg()">×</button><h2>Register Free</h2><p class="muted">Tournament select karke apni details submit karo.</p>
-<form onsubmit="register(event)"><label>Tournament</label><select id="tid" required></select><label>BGMI Name</label><input id="ign" required><label>BGMI UID</label><input id="uid" required inputmode="numeric"><label>WhatsApp Number</label><input id="wa" required placeholder="+91..." inputmode="tel"><button class="btn">Confirm Registration</button></form></div></div>
+<footer>
+  © 2026 BattleArena • Free-entry BGMI tournament platform
+</footer>
+
+<a
+  class="float"
+  target="_blank"
+  href="https://wa.me/918271027577?text=Hello%20BattleArena%20Support"
+>
+  💬
+</a>
+
+<div class="modal" id="modal">
+  <div class="box">
+
+    <button class="close" onclick="closeReg()">×</button>
+
+    <h2>Register Free</h2>
+
+    <p class="muted">
+      Tournament select karke apni details submit karo.
+    </p>
+
+    <form onsubmit="register(event)">
+
+      <label>Tournament</label>
+      <select id="tid" required></select>
+
+      <label>BGMI Name</label>
+      <input id="ign" required>
+
+      <label>BGMI UID</label>
+      <input
+        id="uid"
+        required
+        inputmode="numeric"
+      >
+
+      <label>WhatsApp Number</label>
+      <input
+        id="wa"
+        required
+        placeholder="+91..."
+        inputmode="tel"
+      >
+
+      <button class="btn" type="submit">
+        Confirm Registration
+      </button>
+
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const KEY='ba_ultimate_demo';
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{matches:[{id:1,name:'Solo Battle #01',time:'Tonight • 9:00 PM',slots:100,published:false,room:'',pass:''}],players:[]};
-function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
-function openReg(){modal.classList.add('open');tid.innerHTML=db.matches.map(m=>`<option value="${m.id}">${m.name} • ${m.time}</option>`).join('')}
-function closeReg(){modal.classList.remove('open')}
-function register(e){e.preventDefault();let m=db.matches.find(x=>x.id==tid.value),n=db.players.filter(p=>p.matchId==m.id).length;if(n>=m.slots)return alert('Match full');let p={id:Date.now(),matchId:m.id,ign:ign.value.trim(),uid:uid.value.trim(),wa:wa.value.trim()};db.players.push(p);localStorage.setItem('mine',p.id);save();closeReg();alert('Registration successful!')}
-function render(){matchesGrid.innerHTML=db.matches.map(m=>{let n=db.players.filter(p=>p.matchId==m.id).length;return `<div class="card"><span class="tag">● REGISTRATION OPEN</span><h3>${m.name}</h3><p class="muted">${m.time}</p><div class="stat"><span>Entry</span><b class="price">FREE</b></div><div class="stat"><span>Slots</span><b>${n}/${m.slots}</b></div>${m.published?`<p>Room ID <span class="room">${m.room}</span><br>Password <span class="room">${m.pass}</span></p>`:'<p class="muted">Room ID & password match se pehle release honge.</p>'}<button class="btn" onclick="openReg()">REGISTER NOW</button></div>`}).join('');let id=localStorage.getItem('mine'),p=db.players.find(x=>x.id==id);if(p){let m=db.matches.find(x=>x.id==p.matchId);mine.innerHTML=`<b>${p.ign}</b> • UID ${p.uid}<br>${m.name}<br>${m.published?`Room ID: <span class="room">${m.room}</span><br>Password: <span class="room">${m.pass}</span>`:'<span class="muted">Room details abhi release nahi hue.</span>'}`}}
-render();
+
+const SUPABASE_URL =
+  "https://moqghguteorxltsbgtnf.supabase.co";
+
+const SUPABASE_KEY =
+  sb_publishable_L1JbYdUB2fzGatCPUuhTvw_yr8eMuW3
+Ye dalna hai kya
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY,
+  {
+    db: {
+      schema: "main"
+    }
+  }
+);
+
+let matches = [];
+
+
+/* LOAD TOURNAMENTS */
+
+async function loadMatches() {
+
+  const { data, error } = await supabaseClient
+    .from("tournaments")
+    .select("*")
+    .order("id", { ascending: true });
+
+  if (error) {
+
+    console.error(error);
+
+    matchesGrid.innerHTML = `
+      <div class="card">
+        <h3>Unable to load matches</h3>
+        <p class="muted">
+          Database connection check karo.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+  matches = data || [];
+
+  render();
+}
+
+
+/* OPEN REGISTRATION */
+
+function openReg() {
+
+  if (!matches.length) {
+
+    alert("Abhi koi tournament available nahi hai.");
+
+    return;
+  }
+
+  modal.classList.add("open");
+
+  tid.innerHTML = matches.map(m => `
+    <option value="${m.id}">
+      ${escapeHtml(m.name)}
+      ${m.match_time ? " • " + escapeHtml(m.match_time) : ""}
+    </option>
+  `).join("");
+}
+
+
+/* CLOSE REGISTRATION */
+
+function closeReg() {
+  modal.classList.remove("open");
+}
+
+
+/* REGISTER PLAYER */
+
+async function register(e) {
+
+  e.preventDefault();
+
+  const tournamentId = tid.value;
+  const playerName = ign.value.trim();
+  const playerUid = uid.value.trim();
+  const whatsapp = wa.value.trim();
+
+  if (!playerName || !playerUid || !whatsapp) {
+
+    alert("Please fill all details.");
+
+    return;
+  }
+
+  const match = matches.find(
+    m => String(m.id) === String(tournamentId)
+  );
+
+  if (!match) {
+
+    alert("Tournament not found.");
+
+    return;
+  }
+
+
+  /* CHECK SLOT */
+
+  const {
+    count,
+    error: countError
+  } = await supabaseClient
+    .from("players")
+    .select("id", {
+      count: "exact",
+      head: true
+    })
+    .eq("tournament_id", match.id);
+
+  if (countError) {
+
+    console.error(countError);
+
+    alert("Registration check failed.");
+
+    return;
+  }
+
+  const totalSlots =
+    Number(match.slots) || 100;
+
+  if ((count || 0) >= totalSlots) {
+
+    alert("Match full.");
+
+    return;
+  }
+
+
+  /* SAVE PLAYER */
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("players")
+    .insert({
+      tournament_id: match.id,
+      ign: playerName,
+      uid: playerUid,
+      whatsapp: whatsapp
+    })
+    .select()
+    .single();
+
+  if (error) {
+
+    console.error(error);
+
+    alert(
+      "Registration failed. Please try again."
+    );
+
+    return;
+  }
+
+
+  localStorage.setItem(
+    "battlearena_player_id",
+    data.id
+  );
+
+  closeReg();
+
+  document.querySelector("form").reset();
+
+  alert(
+    "Registration successful! 🎮"
+  );
+
+  render();
+}
+
+
+/* RENDER MATCHES */
+
+async function render() {
+
+  if (!matches.length) {
+
+    matchesGrid.innerHTML = `
+      <div class="card">
+        <h3>No Upcoming Matches</h3>
+        <p class="muted">
+          Admin will add the next tournament soon.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+  let html = "";
+
+  for (const m of matches) {
+
+    const { count } = await supabaseClient
+      .from("players")
+      .select("id", {
+        count: "exact",
+        head: true
+      })
+      .eq("tournament_id", m.id);
+
+    const registered = count || 0;
+
+    const slots =
+      Number(m.slots) || 100;
+
+    html += `
+
+      <div class="card">
+
+        <span class="tag">
+          ● REGISTRATION OPEN
+        </span>
+
+        <h3>
+          ${escapeHtml(m.name)}
+        </h3>
+
+        <p class="muted">
+          ${m.match_time
+            ? escapeHtml(m.match_time)
+            : "Match time will be announced"
+          }
+        </p>
+
+        <div class="stat">
+          <span>Entry</span>
+          <b class="price">FREE</b>
+        </div>
+
+        <div class="stat">
+          <span>Slots</span>
+          <b>${registered}/${slots}</b>
+        </div>
+
+        ${
+          m.room_published
+          ? `
+            <p>
+              Room ID:
+              <span class="room">
+                ${escapeHtml(m.room_id || "")}
+              </span>
+
+              <br>
+
+              Password:
+              <span class="room">
+                ${escapeHtml(m.room_password || "")}
+              </span>
+            </p>
+          `
+          : `
+            <p class="muted">
+              Room ID & password match se pehle release honge.
+            </p>
+          `
+        }
+
+        <button
+          class="btn"
+          onclick="openReg()"
+        >
+          REGISTER NOW
+        </button>
+
+      </div>
+
+    `;
+  }
+
+  matchesGrid.innerHTML = html;
+
+  loadMyRegistration();
+}
+
+
+/* MY REGISTRATION */
+
+async function loadMyRegistration() {
+
+  const myId =
+    localStorage.getItem(
+      "battlearena_player_id"
+    );
+
+  if (!myId) {
+
+    mine.innerHTML =
+      "Is device par abhi registration nahi mila.";
+
+    return;
+  }
+
+  const {
+    data: player,
+    error
+  } = await supabaseClient
+    .from("players")
+    .select("*")
+    .eq("id", myId)
+    .maybeSingle();
+
+  if (error || !player) {
+
+    mine.innerHTML =
+      "Is device par abhi registration nahi mila.";
+
+    return;
+  }
+
+  const match = matches.find(
+    m =>
+      String(m.id) ===
+      String(player.tournament_id)
+  );
+
+  if (!match) {
+
+    mine.innerHTML =
+      "Tournament information unavailable.";
+
+    return;
+  }
+
+  mine.innerHTML = `
+
+    <b>
+      ${escapeHtml(player.ign)}
+    </b>
+
+    • UID ${escapeHtml(player.uid)}
+
+    <br>
+
+    ${escapeHtml(match.name)}
+
+    <br>
+
+    ${
+      match.room_published
+      ? `
+        Room ID:
+        <span class="room">
+          ${escapeHtml(match.room_id || "")}
+        </span>
+
+        <br>
+
+        Password:
+        <span class="room">
+          ${escapeHtml(match.room_password || "")}
+        </span>
+      `
+      : `
+        <span class="muted">
+          Room details abhi release nahi hue.
+        </span>
+      `
+    }
+
+  `;
+}
+
+
+/* ESCAPE HTML */
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+/* START */
+
+loadMatches();
+
 </script>
+
 </body>
-</html>
+        </html>

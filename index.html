@@ -310,14 +310,17 @@ async function register(e) {
 
   if (error) {
 
-    console.error(error);
+  console.error("SUPABASE ERROR:", error);
 
-    alert(
-      "Registration failed. Please try again."
-    );
+  alert(
+    "Registration failed:\n" +
+    (error.message || "Unknown error") +
+    "\n\nDetails: " +
+    (error.details || "None")
+  );
 
-    return;
-  }
+  return;
+}
 
 
   localStorage.setItem(

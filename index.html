@@ -509,28 +509,71 @@ async function register(e) {
 
   /* CHECK DUPLICATE REGISTRATION */
 
-const { data: existingPlayer, error: duplicateError } =
+const { data: existingPlayers, error: duplicateError } =
   await supabaseClient
     .from("players")
-    .select("id")
+    .select("id, uid, whatsapp")
     .eq("tournament_id", match.id)
-    .eq("uid", playerUid)
-    .eq("whatsapp", whatsapp)
-    .maybeSingle();
+    .or(`uid.eq.${playerUid},whatsapp.eq.${whatsapp}`);
 
 if (duplicateError) {
-  console.error("DUPLICATE CHECK ERROR:", duplicateError);
+
+  console.error(
+    "DUPLICATE CHECK ERROR:",
+    duplicateError
+  );
+
   alert("Registration check failed.");
+
   return;
 }
 
-if (existingPlayer) {
-  alert(
-    "Already Registered! ⚠️\n\n" +
-    "Ye UID aur WhatsApp number is battle mein pehle se registered hai."
-  );
-  return;
-  }/* CHECK SLOT */
+if (existingPlayers && existingPlayers.length > 0) {
+
+  const sameUid =
+    existingPlayers.some(
+      p => String(p.uid) === String(playerUid)
+    );
+
+  const sameWhatsapp =
+    existingPlayers.some(
+      p => String(p.whatsapp) === String(whatsapp)
+    );
+
+  if (sameUid && sameWhatsapp) {
+
+    alert(
+      "Already Registered! ⚠️\n\n" +
+      "Ye BGMI UID aur WhatsApp number is battle mein pehle se registered hai."
+    );
+
+    return;
+
+  }
+
+  if (sameUid) {
+
+    alert(
+      "Already Registered! ⚠️\n\n" +
+      "Ye BGMI UID is battle mein pehle se registered hai."
+    );
+
+    return;
+
+  }
+
+  if (sameWhatsapp) {
+
+    alert(
+      "Already Registered! ⚠️\n\n" +
+      "Ye WhatsApp number is battle mein pehle se registered hai."
+    );
+
+    return;
+  }
+}
+
+/* CHECK SLOT */
 
   const {
     count,

@@ -325,7 +325,7 @@ async function openReg() {
     data: sponsor,
     error
   } = await supabaseClient
-    .from("sponsor_ads")
+    .from("sponsor_ad")
     .select("*")
     .limit(1)
     .maybeSingle();

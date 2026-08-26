@@ -165,7 +165,43 @@ footer{border-top:1px solid #ffffff10;margin-top:40px;padding:35px 0;color:#7280
   💬
 </a>
 
-<div class="modal" id="modal">
+<!-- SPONSOR AD MODAL -->
+
+<div class="ad-modal" id="adModal">
+
+  <div class="ad-box">
+
+    <div class="ad-label">
+      SPONSORED
+    </div>
+
+    <iframe
+      id="adVideo"
+      class="ad-video"
+      src=""
+      allow="autoplay; encrypted-media; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+
+    <h3 class="ad-title" id="adTitle">
+      Sponsor Advertisement
+    </h3>
+
+    <button
+      class="btn ad-continue"
+      id="adContinue"
+      onclick="continueAfterAd()"
+      disabled>
+      Please wait...
+    </button>
+
+    <div class="ad-timer" id="adTimer">
+      Advertisement loading...
+    </div>
+
+  </div>
+
+</div><div class="modal" id="modal">
   <div class="box">
 
     <button class="close" onclick="closeReg()">×</button>
@@ -256,9 +292,9 @@ async function loadMatches() {
 }
 
 
-/* OPEN REGISTRATION */
+/* OPEN REGISTRATION WITH SPONSOR AD */
 
-function openReg() {
+async function openReg() {
 
   if (!matches.length) {
 
@@ -267,15 +303,171 @@ function openReg() {
     return;
   }
 
+  const tournamentId = matches[0].id;
+
+  /* Check how many ads this device has watched */
+  const storageKey =
+    "battlearena_ad_views_" + tournamentId;
+
+  let adViews =
+    Number(localStorage.getItem(storageKey) || 0);
+
+  /* Maximum 2 sponsor ads per tournament */
+  if (adViews >= 2) {
+
+    openRegistrationForm();
+
+    return;
+  }
+
+  /* Load sponsor ad */
+  const {
+    data: sponsor,
+    error
+  } = await supabaseClient
+    .from("sponsor_ads")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+
+    console.error("Sponsor ad error:", error);
+
+    /* If ad cannot load, don't block registration */
+    openRegistrationForm();
+
+    return;
+  }
+
+  /* No sponsor available */
+  if (!sponsor || !sponsor.video_url) {
+
+    openRegistrationForm();
+
+    return;
+  }
+
+  /* Count this ad view */
+  adViews++;
+
+  localStorage.setItem(
+    storageKey,
+    adViews
+  );
+
+  /* Convert YouTube URL to embed URL */
+  let videoUrl = sponsor.video_url;
+
+  if (videoUrl.includes("watch?v=")) {
+
+    const videoId =
+      videoUrl.split("watch?v=")[1].split("&")[0];
+
+    videoUrl =
+      "https://www.youtube.com/embed/" +
+      videoId +
+      "?autoplay=1&mute=1&rel=0";
+
+  } else if (videoUrl.includes("youtu.be/")) {
+
+    const videoId =
+      videoUrl.split("youtu.be/")[1].split("?")[0];
+
+    videoUrl =
+      "https://www.youtube.com/embed/" +
+      videoId +
+      "?autoplay=1&mute=1&rel=0";
+
+  } else if (videoUrl.includes("/embed/")) {
+
+    videoUrl +=
+      videoUrl.includes("?")
+        ? "&autoplay=1&mute=1&rel=0"
+        : "?autoplay=1&mute=1&rel=0";
+  }
+
+  document.getElementById("adVideo").src =
+    videoUrl;
+
+  document.getElementById("adTitle").textContent =
+    sponsor.title || "Sponsor Advertisement";
+
+  const adModal =
+    document.getElementById("adModal");
+
+  const continueButton =
+    document.getElementById("adContinue");
+
+  const timer =
+    document.getElementById("adTimer");
+
+  adModal.classList.add("open");
+
+  continueButton.disabled = true;
+
+  continueButton.textContent =
+    "Please wait...";
+
+  let seconds = 10;
+
+  timer.textContent =
+    "Ad ends in " + seconds + " seconds";
+
+  const countdown =
+    setInterval(() => {
+
+      seconds--;
+
+      timer.textContent =
+        "Ad ends in " + seconds + " seconds";
+
+      if (seconds <= 0) {
+
+        clearInterval(countdown);
+
+        continueButton.disabled = false;
+
+        continueButton.textContent =
+          "CONTINUE TO REGISTRATION";
+
+        timer.textContent =
+          "Advertisement completed ✓";
+      }
+
+    }, 1000);
+}
+
+
+/* OPEN ACTUAL REGISTRATION FORM */
+
+function openRegistrationForm() {
+
   modal.classList.add("open");
 
   tid.innerHTML = matches.map(m => `
     <option value="${m.id}">
       ${escapeHtml(m.name)}
-      ${m.match_time ? " • " + escapeHtml(m.match_time) : ""}
+      ${m.match_time
+        ? " • " + escapeHtml(m.match_time)
+        : ""}
     </option>
   `).join("");
 }
+
+
+/* AFTER AD */
+
+function continueAfterAd() {
+
+  document.getElementById("adModal")
+    .classList.remove("open");
+
+  document.getElementById("adVideo")
+    .src = "";
+
+  openRegistrationForm();
+  }
 
 
 /* CLOSE REGISTRATION */

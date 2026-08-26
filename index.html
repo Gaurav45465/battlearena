@@ -507,7 +507,30 @@ async function register(e) {
   }
 
 
-  /* CHECK SLOT */
+  /* CHECK DUPLICATE REGISTRATION */
+
+const { data: existingPlayer, error: duplicateError } =
+  await supabaseClient
+    .from("players")
+    .select("id")
+    .eq("tournament_id", match.id)
+    .eq("uid", playerUid)
+    .eq("whatsapp", whatsapp)
+    .maybeSingle();
+
+if (duplicateError) {
+  console.error("DUPLICATE CHECK ERROR:", duplicateError);
+  alert("Registration check failed.");
+  return;
+}
+
+if (existingPlayer) {
+  alert(
+    "Already Registered! ⚠️\n\n" +
+    "Ye UID aur WhatsApp number is battle mein pehle se registered hai."
+  );
+  return;
+  }/* CHECK SLOT */
 
   const {
     count,

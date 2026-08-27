@@ -201,6 +201,7 @@ footer{border-top:1px solid #ffffff10;margin-top:40px;padding:35px 0;color:#7280
 
   </div>
 
+</div>
 </div><div class="modal" id="modal">
   <div class="box">
 
@@ -292,35 +293,25 @@ async function loadMatches() {
 }
 
 
-/* OPEN REGISTRATION WITH SPONSOR AD */
+/* SPONSOR AD SYSTEM */
+
+let adStep = 0;
+let adCountdown = null;
 
 async function openReg() {
 
   if (!matches.length) {
-
     alert("Abhi koi tournament available nahi hai.");
-
     return;
   }
 
-  const tournamentId = matches[0].id;
+  adStep = 1;
+  showSponsorAd();
+}
 
-  /* Check how many ads this device has watched */
-  const storageKey =
-    "battlearena_ad_views_" + tournamentId;
 
-  let adViews =
-    Number(localStorage.getItem(storageKey) || 0);
+async function showSponsorAd() {
 
-  /* Maximum 2 sponsor ads per tournament */
-  if (adViews >= 2) {
-
-    openRegistrationForm();
-
-    return;
-  }
-
-  /* Load sponsor ad */
   const {
     data: sponsor,
     error
@@ -333,32 +324,23 @@ async function openReg() {
   if (error) {
 
     console.error("Sponsor ad error:", error);
-    alert("Sponsor Ad Error: " + JSON.stringify(error));
 
-    /* If ad cannot load, don't block registration */
-    openRegistrationForm();
+    alert(
+      "Sponsor Ad Error:\n" +
+      (error.message || "Unknown error")
+    );
 
     return;
   }
 
-  /* No sponsor available */
   if (!sponsor || !sponsor.video_url) {
 
-    openRegistrationForm();
+    alert("Sponsor advertisement available nahi hai.");
 
     return;
   }
 
-  /* Count this ad view */
-  adViews++;
-
-  localStorage.setItem(
-    storageKey,
-    adViews
-  );
-
-  /* Convert YouTube URL to embed URL */
-  let videoUrl = sponsor.video_url;
+  let videoUrl = sponsor.video_url.trim();
 
   if (videoUrl.includes("watch?v=")) {
 
@@ -379,17 +361,9 @@ async function openReg() {
       "https://www.youtube.com/embed/" +
       videoId +
       "?autoplay=1&mute=1&rel=0";
-
-  } else if (videoUrl.includes("/embed/")) {
-
-    videoUrl +=
-      videoUrl.includes("?")
-        ? "&autoplay=1&mute=1&rel=0"
-        : "?autoplay=1&mute=1&rel=0";
   }
 
-  document.getElementById("adVideo").src =
-    videoUrl;
+  document.getElementById("adVideo").src = videoUrl;
 
   document.getElementById("adTitle").textContent =
     sponsor.title || "Sponsor Advertisement";
@@ -406,42 +380,69 @@ async function openReg() {
   adModal.classList.add("open");
 
   continueButton.disabled = true;
-
-  continueButton.textContent =
-    "Please wait...";
+  continueButton.textContent = "Please wait...";
 
   let seconds = 10;
 
   timer.textContent =
     "Ad ends in " + seconds + " seconds";
 
-  const countdown =
-    setInterval(() => {
+  if (adCountdown) {
+    clearInterval(adCountdown);
+  }
 
-      seconds--;
+  adCountdown = setInterval(() => {
+
+    seconds--;
+
+    timer.textContent =
+      "Ad ends in " + seconds + " seconds";
+
+    if (seconds <= 0) {
+
+      clearInterval(adCountdown);
+      adCountdown = null;
+
+      continueButton.disabled = false;
+      continueButton.textContent = "CONTINUE";
 
       timer.textContent =
-        "Ad ends in " + seconds + " seconds";
+        "Advertisement completed ✓";
+    }
 
-      if (seconds <= 0) {
-
-        clearInterval(countdown);
-
-        continueButton.disabled = false;
-
-        continueButton.textContent =
-          "CONTINUE TO REGISTRATION";
-
-        timer.textContent =
-          "Advertisement completed ✓";
-      }
-
-    }, 1000);
+  }, 1000);
 }
 
 
-/* OPEN ACTUAL REGISTRATION FORM */
+function continueAfterAd() {
 
+  document.getElementById("adModal")
+    .classList.remove("open");
+
+  document.getElementById("adVideo")
+    .src = "";
+
+  if (adCountdown) {
+    clearInterval(adCountdown);
+    adCountdown = null;
+  }
+
+  if (adStep === 1) {
+
+    adStep = 2;
+    openRegistrationForm();
+
+  } else if (adStep === 2) {
+
+    adStep = 0;
+
+    completeRegistration();
+  }
+  }
+
+  
+  /* OPEN ACTUAL REGISTRATION FORM */
+  
 function openRegistrationForm() {
 
   modal.classList.add("open");

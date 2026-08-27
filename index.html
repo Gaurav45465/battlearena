@@ -316,7 +316,7 @@ async function showSponsorAd() {
     data: sponsor,
     error
   } = await supabaseClient
-    .from("sponsor_ad")
+    .from("sponsor_ads")
     .select("*")
     .limit(1)
     .maybeSingle();

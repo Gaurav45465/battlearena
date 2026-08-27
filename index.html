@@ -333,6 +333,7 @@ async function openReg() {
   if (error) {
 
     console.error("Sponsor ad error:", error);
+    alert("Sponsor Ad Error: " + JSON.stringify(error));
 
     /* If ad cannot load, don't block registration */
     openRegistrationForm();

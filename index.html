@@ -296,30 +296,20 @@ async function loadMatches() {
 /* SPONSOR AD SYSTEM */
 
 let adStep = 0;
+let pendingRegistration = null;
 let adCountdown = null;
 
-async function openReg() {
+async function showSponsorAd(step) {
 
-  if (!matches.length) {
-    alert("Abhi koi tournament available nahi hai.");
-    return;
-  }
-
-  adStep = 1;
-  showSponsorAd();
-}
-
-
-async function showSponsorAd() {
+  adStep = step;
 
   const {
-    data: sponsor,
+    data: sponsors,
     error
   } = await supabaseClient
     .from("sponsor_ads")
     .select("*")
-    .limit(1)
-    .maybeSingle();
+    .order("id", { ascending: true });
 
   if (error) {
 
@@ -333,19 +323,37 @@ async function showSponsorAd() {
     return;
   }
 
-  if (!sponsor || !sponsor.video_url) {
+  if (!sponsors || sponsors.length < step) {
 
-    alert("Sponsor advertisement available nahi hai.");
+    alert(
+      "Sponsor Ad " + step +
+      " available nahi hai."
+    );
 
     return;
   }
 
-  let videoUrl = sponsor.video_url.trim();
+  const sponsor = sponsors[step - 1];
+
+  if (!sponsor.video_url) {
+
+    alert(
+      "Sponsor Ad " + step +
+      " ka video URL missing hai."
+    );
+
+    return;
+  }
+
+  let videoUrl =
+    sponsor.video_url.trim();
 
   if (videoUrl.includes("watch?v=")) {
 
     const videoId =
-      videoUrl.split("watch?v=")[1].split("&")[0];
+      videoUrl
+        .split("watch?v=")[1]
+        .split("&")[0];
 
     videoUrl =
       "https://www.youtube.com/embed/" +
@@ -355,18 +363,29 @@ async function showSponsorAd() {
   } else if (videoUrl.includes("youtu.be/")) {
 
     const videoId =
-      videoUrl.split("youtu.be/")[1].split("?")[0];
+      videoUrl
+        .split("youtu.be/")[1]
+        .split("?")[0];
 
     videoUrl =
       "https://www.youtube.com/embed/" +
       videoId +
       "?autoplay=1&mute=1&rel=0";
+
+  } else if (videoUrl.includes("/embed/")) {
+
+    videoUrl +=
+      videoUrl.includes("?")
+        ? "&autoplay=1&mute=1&rel=0"
+        : "?autoplay=1&mute=1&rel=0";
   }
 
-  document.getElementById("adVideo").src = videoUrl;
+  document.getElementById("adVideo").src =
+    videoUrl;
 
   document.getElementById("adTitle").textContent =
-    sponsor.title || "Sponsor Advertisement";
+    sponsor.title ||
+    "Sponsor Advertisement";
 
   const adModal =
     document.getElementById("adModal");
@@ -380,39 +399,72 @@ async function showSponsorAd() {
   adModal.classList.add("open");
 
   continueButton.disabled = true;
-  continueButton.textContent = "Please wait...";
+
+  continueButton.textContent =
+    "Please wait...";
 
   let seconds = 10;
 
   timer.textContent =
-    "Ad ends in " + seconds + " seconds";
+    "Ad " + step +
+    " ends in " +
+    seconds +
+    " seconds";
 
   if (adCountdown) {
     clearInterval(adCountdown);
   }
 
-  adCountdown = setInterval(() => {
+  adCountdown =
+    setInterval(() => {
 
-    seconds--;
-
-    timer.textContent =
-      "Ad ends in " + seconds + " seconds";
-
-    if (seconds <= 0) {
-
-      clearInterval(adCountdown);
-      adCountdown = null;
-
-      continueButton.disabled = false;
-      continueButton.textContent = "CONTINUE";
+      seconds--;
 
       timer.textContent =
-        "Advertisement completed ✓";
-    }
+        "Ad " + step +
+        " ends in " +
+        seconds +
+        " seconds";
 
-  }, 1000);
+      if (seconds <= 0) {
+
+        clearInterval(adCountdown);
+
+        adCountdown = null;
+
+        continueButton.disabled = false;
+
+        continueButton.textContent =
+          step === 1
+            ? "CONTINUE TO REGISTRATION"
+            : "CONTINUE";
+
+        timer.textContent =
+          "Advertisement completed ✓";
+      }
+
+    }, 1000);
 }
 
+
+/* OPEN REGISTRATION */
+
+async function openReg() {
+
+  if (!matches.length) {
+
+    alert(
+      "Abhi koi tournament available nahi hai."
+    );
+
+    return;
+  }
+
+  await showSponsorAd(1);
+}
+
+
+/* AFTER AD */
 
 function continueAfterAd() {
 
@@ -423,20 +475,28 @@ function continueAfterAd() {
     .src = "";
 
   if (adCountdown) {
+
     clearInterval(adCountdown);
+
     adCountdown = null;
   }
 
   if (adStep === 1) {
 
-    adStep = 2;
+    adStep = 0;
+
     openRegistrationForm();
 
-  } else if (adStep === 2) {
+    return;
+  }
+
+  if (adStep === 2) {
 
     adStep = 0;
 
     completeRegistration();
+
+    return;
   }
   }
 
@@ -485,97 +545,131 @@ async function register(e) {
 
   e.preventDefault();
 
-  const tournamentId = tid.value;
-  const playerName = ign.value.trim();
-  const playerUid = uid.value.trim();
-  const whatsapp = wa.value.trim();
+  const tournamentId =
+    tid.value;
 
-  if (!playerName || !playerUid || !whatsapp) {
+  const playerName =
+    ign.value.trim();
 
-    alert("Please fill all details.");
+  const playerUid =
+    uid.value.trim();
+
+  const whatsapp =
+    wa.value.trim();
+
+  if (
+    !playerName ||
+    !playerUid ||
+    !whatsapp
+  ) {
+
+    alert(
+      "Please fill all details."
+    );
 
     return;
   }
 
-  const match = matches.find(
-    m => String(m.id) === String(tournamentId)
-  );
+  const match =
+    matches.find(
+      m =>
+        String(m.id) ===
+        String(tournamentId)
+    );
 
   if (!match) {
 
-    alert("Tournament not found.");
+    alert(
+      "Tournament not found."
+    );
 
     return;
   }
 
 
-  /* CHECK DUPLICATE REGISTRATION */
+  /* CHECK DUPLICATE */
 
-const { data: existingPlayers, error: duplicateError } =
-  await supabaseClient
+  const {
+    data: existingPlayers,
+    error: duplicateError
+  } = await supabaseClient
     .from("players")
     .select("id, uid, whatsapp")
     .eq("tournament_id", match.id)
-    .or(`uid.eq.${playerUid},whatsapp.eq.${whatsapp}`);
-
-if (duplicateError) {
-
-  console.error(
-    "DUPLICATE CHECK ERROR:",
-    duplicateError
-  );
-
-  alert("Registration check failed.");
-
-  return;
-}
-
-if (existingPlayers && existingPlayers.length > 0) {
-
-  const sameUid =
-    existingPlayers.some(
-      p => String(p.uid) === String(playerUid)
+    .or(
+      `uid.eq.${playerUid},whatsapp.eq.${whatsapp}`
     );
 
-  const sameWhatsapp =
-    existingPlayers.some(
-      p => String(p.whatsapp) === String(whatsapp)
-    );
+  if (duplicateError) {
 
-  if (sameUid && sameWhatsapp) {
+    console.error(
+      "DUPLICATE CHECK ERROR:",
+      duplicateError
+    );
 
     alert(
-      "Already Registered! ⚠️\n\n" +
-      "Ye BGMI UID aur WhatsApp number is battle mein pehle se registered hai."
-    );
-
-    return;
-
-  }
-
-  if (sameUid) {
-
-    alert(
-      "Already Registered! ⚠️\n\n" +
-      "Ye BGMI UID is battle mein pehle se registered hai."
-    );
-
-    return;
-
-  }
-
-  if (sameWhatsapp) {
-
-    alert(
-      "Already Registered! ⚠️\n\n" +
-      "Ye WhatsApp number is battle mein pehle se registered hai."
+      "Registration check failed."
     );
 
     return;
   }
-}
 
-/* CHECK SLOT */
+
+  if (
+    existingPlayers &&
+    existingPlayers.length > 0
+  ) {
+
+    const sameUid =
+      existingPlayers.some(
+        p =>
+          String(p.uid) ===
+          String(playerUid)
+      );
+
+    const sameWhatsapp =
+      existingPlayers.some(
+        p =>
+          String(p.whatsapp) ===
+          String(whatsapp)
+      );
+
+
+    if (sameUid && sameWhatsapp) {
+
+      alert(
+        "Already Registered! ⚠️\n\n" +
+        "Ye BGMI UID aur WhatsApp number is battle mein pehle se registered hai."
+      );
+
+      return;
+    }
+
+
+    if (sameUid) {
+
+      alert(
+        "Already Registered! ⚠️\n\n" +
+        "Ye BGMI UID is battle mein pehle se registered hai."
+      );
+
+      return;
+    }
+
+
+    if (sameWhatsapp) {
+
+      alert(
+        "Already Registered! ⚠️\n\n" +
+        "Ye WhatsApp number is battle mein pehle se registered hai."
+      );
+
+      return;
+    }
+  }
+
+
+  /* CHECK SLOT */
 
   const {
     count,
@@ -586,57 +680,111 @@ if (existingPlayers && existingPlayers.length > 0) {
       count: "exact",
       head: true
     })
-    .eq("tournament_id", match.id);
+    .eq(
+      "tournament_id",
+      match.id
+    );
 
   if (countError) {
 
-    console.error(countError);
+    console.error(
+      countError
+    );
 
-    alert("Registration check failed.");
+    alert(
+      "Registration check failed."
+    );
 
     return;
   }
+
 
   const totalSlots =
     Number(match.slots) || 100;
 
-  if ((count || 0) >= totalSlots) {
 
-    alert("Match full.");
+  if (
+    (count || 0) >= totalSlots
+  ) {
+
+    alert(
+      "Match full."
+    );
 
     return;
   }
 
 
-  /* SAVE PLAYER */
+  /* SAVE DETAILS TEMPORARILY */
+
+  pendingRegistration = {
+
+    tournament_id: match.id,
+
+    ign: playerName,
+
+    uid: playerUid,
+
+    whatsapp: whatsapp
+  };
+
+
+  /* SECOND SPONSOR AD */
+
+  await showSponsorAd(2);
+}
+
+
+/* COMPLETE REGISTRATION AFTER SECOND AD */
+
+async function completeRegistration() {
+
+  if (!pendingRegistration) {
+
+    alert(
+      "Registration data missing."
+    );
+
+    return;
+  }
+
 
   const {
     data,
     error
   } = await supabaseClient
     .from("players")
-    .insert({
-      tournament_id: match.id,
-      ign: playerName,
-      uid: playerUid,
-      whatsapp: whatsapp
-    })
+    .insert(
+      pendingRegistration
+    )
     .select()
     .single();
 
+
   if (error) {
 
-  console.error("SUPABASE ERROR:", error);
+    console.error(
+      "SUPABASE ERROR:",
+      error
+    );
 
-  alert(
-    "Registration failed:\n" +
-    (error.message || "Unknown error") +
-    "\n\nDetails: " +
-    (error.details || "None")
-  );
+    alert(
+      "Registration failed:\n" +
+      (
+        error.message ||
+        "Unknown error"
+      ) +
+      "\n\nDetails: " +
+      (
+        error.details ||
+        "None"
+      )
+    );
 
-  return;
-}
+    pendingRegistration = null;
+
+    return;
+  }
 
 
   localStorage.setItem(
@@ -644,16 +792,25 @@ if (existingPlayers && existingPlayers.length > 0) {
     data.id
   );
 
+
+  pendingRegistration = null;
+
+
   closeReg();
 
-  document.querySelector("form").reset();
+
+  document
+    .querySelector("form")
+    .reset();
+
 
   alert(
     "Registration successful! 🎮"
   );
 
+
   render();
-}
+      }
 
 
 /* RENDER MATCHES */

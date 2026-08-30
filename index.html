@@ -29,6 +29,12 @@ nav{height:78px;display:flex;align-items:center;justify-content:space-between;bo
 section{padding:42px 0}.head{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}.head h2{font-size:31px;margin:0}.muted{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px}.card{background:linear-gradient(155deg,#10192a,#0a101d);border:1px solid var(--line);border-radius:19px;padding:21px;box-shadow:0 12px 35px #0003}.tag{color:var(--green);font-size:12px;font-weight:900}.price{font-size:30px;font-weight:1000}.stat{display:flex;justify-content:space-between;border-top:1px solid #ffffff0d;padding:12px 0}.room{color:var(--cyan);font-size:21px;font-weight:1000}
 .video{position:relative;aspect-ratio:16/9;border-radius:22px;overflow:hidden;border:1px solid #30415f;background:linear-gradient(135deg,#111d33,#080c15)}
+  .video iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+                                                                                                                                  }
 .video .scan{position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#55e8ff10 45%,transparent 60%);animation:sweep 3s infinite}
 @keyframes sweep{0%{transform:translateX(-80%)}100%{transform:translateX(80%)}}
 .video .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#55e8ff;color:#061018;font-size:30px;box-shadow:0 0 40px #55e8ff66}.video .caption{position:absolute;left:18px;bottom:16px;background:#07101ddd;border:1px solid #31415c;padding:10px 12px;border-radius:10px}.video .caption b{display:block}.video .caption small{color:#94a3bb}
@@ -125,8 +131,12 @@ footer{border-top:1px solid #ffffff10;margin-top:40px;padding:35px 0;color:#7280
 <section id="highlights">
 <div class="head"><div><h2>🎬 BGMI Highlights</h2><p class="muted">Apna tournament gameplay/demo video yahan showcase karo.</p></div></div>
 <div class="video">
-<div class="scan"></div><div class="play">▶</div>
-<div class="caption"><b>YOUR TOURNAMENT HIGHLIGHTS</b><small>Replace this demo area with your YouTube/video embed</small></div>
+  <iframe
+    src="https://www.youtube.com/embed/GgThyfb42ig"
+    title="BattleArena BGMI Tournament Highlights"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
 </div>
 </section>
 

@@ -876,105 +876,141 @@ async async function completeRegistration() {
 
 async function render() {
 
-  if (!matches.length) {
+    const grid =
+        document.getElementById("matchesGrid");
 
-    matchesGrid.innerHTML = `
-      <div class="card">
-        <h3>No Upcoming Matches</h3>
-        <p class="muted">
-          Admin will add the next tournament soon.
-        </p>
-      </div>
-    `;
+    if (!grid) {
+        console.error("matchesGrid not found");
+        return;
+    }
 
-    return;
-  }
+    if (!matches.length) {
 
-  let html = "";
+        grid.innerHTML = `
+            <div class="card">
+                <h3>No Upcoming Matches</h3>
+                <p class="muted">
+                    Admin will add the next tournament soon.
+                </p>
+            </div>
+        `;
 
-  for (const m of matches) {
+        return;
+    }
 
-    const { count } = await supabaseClient
-      .from("players")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("tournament_id", m.id);
+    let html = "";
 
-    const registered = count || 0;
+    for (const m of matches) {
 
-    const slots =
-      Number(m.slots) || 100;
+        let registered = 0;
 
-    html += `
+        /* PLAYER COUNT */
 
-      <div class="card">
+        const {
+            count,
+            error: countError
+        } = await supabaseClient
+            .from("players")
+            .select("id", {
+                count: "exact",
+                head: true
+            })
+            .eq("tournament_id", m.id);
 
-        <span class="tag">
-          ● REGISTRATION OPEN
-        </span>
+        if (countError) {
 
-        <h3>
-          ${escapeHtml(m.name)}
-        </h3>
+            console.error(
+                "Player count error:",
+                countError
+            );
 
-        <p class="muted">
-          ${m.match_time
-            ? escapeHtml(m.match_time)
-            : "Match time will be announced"
-          }
-        </p>
+            /* Count unavailable, but tournament
+               should still be displayed */
 
-        <div class="stat">
-          <span>Entry</span>
-          <b class="price">FREE</b>
-        </div>
+            registered = 0;
 
-        <div class="stat">
-          <span>Slots</span>
-          <b>${registered}/${slots}</b>
-        </div>
+        } else {
 
-        ${
-          m.room_published
-          ? `
-            <p>
-              Room ID:
-              <span class="room">
-                ${escapeHtml(m.room_id || "")}
-              </span>
-
-              <br>
-
-              Password:
-              <span class="room">
-                ${escapeHtml(m.room_password || "")}
-              </span>
-            </p>
-          `
-          : `
-            <p class="muted">
-              Room ID & password match se pehle release honge.
-            </p>
-          `
+            registered = count || 0;
         }
 
-        <button
-          class="btn"
-          onclick="openReg()"
-        >
-          REGISTER NOW
-        </button>
 
-      </div>
+        const slots =
+            Number(m.slots) || 100;
 
-    `;
-  }
 
-  matchesGrid.innerHTML = html;
+        html += `
 
-  loadMyRegistration();
+            <div class="card">
+
+                <span class="tag">
+                    • REGISTRATION OPEN
+                </span>
+
+                <h3>
+                    ${escapeHtml(m.name)}
+                </h3>
+
+                <p class="muted">
+                    ${
+                        m.match_time
+                        ? escapeHtml(m.match_time)
+                        : "Match time will be announced"
+                    }
+                </p>
+
+                <div class="stat">
+                    <span>Entry</span>
+                    <b class="price">FREE</b>
+                </div>
+
+                <div class="stat">
+                    <span>Slots</span>
+                    <b>${registered}/${slots}</b>
+                </div>
+
+                ${
+                    m.room_published
+                    ? `
+                        <p>
+                            Room ID:
+                            <span class="room">
+                                ${escapeHtml(m.room_id || "")}
+                            </span>
+
+                            <br>
+
+                            Password:
+                            <span class="room">
+                                ${escapeHtml(m.room_password || "")}
+                            </span>
+                        </p>
+                    `
+                    : `
+                        <p class="muted">
+                            Room ID & password match se pehle release honge.
+                        </p>
+                    `
+                }
+
+                <button
+                    class="btn"
+                    onclick="openReg()"
+                >
+                    REGISTER NOW
+                </button>
+
+            </div>
+
+        `;
+    }
+
+
+    grid.innerHTML = html;
+
+
+    loadMyRegistration();
+}
 }
 
 

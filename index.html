@@ -702,10 +702,61 @@ async function register(e) {
 
   /* CHECK SLOT */
 
-  const {
-    count,
-    error: countError
-  } = await supabaseClient
+const {
+  count,
+  error: countError
+} = await supabaseClient
+  .from("players")
+  .select("id", {
+    count: "exact",
+    head: true
+  })
+  .eq("tournament_id", match.id);
+  if (countError) {
+    console.error("SLOT CHECK ERROR:", countError);
+
+    alert("Slot check failed. Please try again.");
+    return;
+  }
+
+  if (count >= Number(match.slots)) {
+    alert("Sorry! This tournament is full.");
+    return;
+  }
+
+  /* REGISTER PLAYER */
+
+  const { data, error } = await supabaseClient
     .from("players")
-    .select("id", {
-      cou
+    .insert([
+      {
+        tournament_id: match.id,
+        ign: playerName,
+        uid: playerUid,
+        whatsapp: whatsapp
+      }
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("REGISTRATION ERROR:", error);
+
+    alert(
+      "Registration failed.\n\nPlease try again."
+    );
+
+    return;
+  }
+
+  alert(
+    "Registration Successful! 🎉\n\n" +
+    "Your BGMI registration has been submitted."
+  );
+
+  modal.classList.remove("show");
+
+  loadMatches();
+  </script>
+</body>
+</html>

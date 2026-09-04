@@ -735,80 +735,142 @@ async function register(e) {
 
 /* COMPLETE REGISTRATION AFTER SECOND AD */
 
-async function completeRegistration() {
+async async function completeRegistration() {
 
-  if (!pendingRegistration) {
+   if (!pendingRegistration) {
 
-    alert(
-      "Registration data missing."
-    );
+       alert(
+           "Registration data missing."
+       );
 
-    return;
+       return;
+   }
+
+
+   const {
+       data,
+       error
+   } = await supabaseClient
+       .from("players")
+       .insert(
+           pendingRegistration
+       )
+       .select()
+       .single();
+
+
+   if (error) {
+
+       console.error(
+           "SUPABASE ERROR:",
+           error
+       );
+
+       alert(
+           "Registration failed:\n" +
+           (
+               error.message ||
+               "Unknown error"
+           ) +
+           "\n\nDetails: " +
+           (
+               error.details ||
+               "None"
+           )
+       );
+
+       pendingRegistration = null;
+
+       return;
+   }
+
+
+   /* SAVE PLAYER ID */
+
+   localStorage.setItem(
+       "battlearena_player_id",
+       data.id
+   );
+
+
+   /* SAVE REGISTRATION NUMBER */
+
+   localStorage.setItem(
+       "battlearena_registration_no",
+       data.registration_no
+   );
+
+
+   /* SAVE REGISTRATION TIME */
+
+   localStorage.setItem(
+       "battlearena_registered_at",
+       data.registered_at
+   );
+
+
+   /* CLEAR TEMP DATA */
+
+   pendingRegistration = null;
+
+
+   closeReg();
+
+
+   document
+       .querySelector("form")
+       .reset();
+
+
+   /* SHOW REGISTRATION DETAILS */
+
+   const registeredDate =
+       new Date(
+           data.registered_at
+       );
+
+
+   const formattedDate =
+       registeredDate.toLocaleDateString(
+           "en-IN",
+           {
+               day: "2-digit",
+               month: "short",
+               year: "numeric"
+           }
+       );
+
+
+   const formattedTime =
+       registeredDate.toLocaleTimeString(
+           "en-IN",
+           {
+               hour: "2-digit",
+               minute: "2-digit",
+               hour12: true
+           }
+       );
+
+
+   alert(
+       "Registration Successful! 🎮\n\n" +
+
+       "Registration No.: " +
+       data.registration_no +
+
+       "\n\nBGMI Name: " +
+       data.ign +
+
+       "\n\nRegistered On: " +
+       formattedDate +
+
+       "\nTime: " +
+       formattedTime
+   );
+
+
+   render();
   }
-
-
-  const {
-    data,
-    error
-  } = await supabaseClient
-    .from("players")
-    .insert(
-      pendingRegistration
-    )
-    .select()
-    .single();
-
-
-  if (error) {
-
-    console.error(
-      "SUPABASE ERROR:",
-      error
-    );
-
-    alert(
-      "Registration failed:\n" +
-      (
-        error.message ||
-        "Unknown error"
-      ) +
-      "\n\nDetails: " +
-      (
-        error.details ||
-        "None"
-      )
-    );
-
-    pendingRegistration = null;
-
-    return;
-  }
-
-
-  localStorage.setItem(
-    "battlearena_player_id",
-    data.id
-  );
-
-
-  pendingRegistration = null;
-
-
-  closeReg();
-
-
-  document
-    .querySelector("form")
-    .reset();
-
-
-  alert(
-    "Registration successful! 🎮"
-  );
-
-
-  render();
-      }
 
 
 /* RENDER MATCHES */

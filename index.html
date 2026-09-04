@@ -1117,7 +1117,25 @@ function escapeHtml(value) {
 
 /* START */
 
-loadMatches();
+console.log("BATTLEARNA JS STARTED");
+
+loadMatches().catch(error => {
+
+    console.error("LOAD MATCHES CRASH:", error);
+
+    const grid = document.getElementById("matchesGrid");
+
+    if (grid) {
+        grid.innerHTML = `
+            <div class="card">
+                <h3>⚠️ JavaScript Error</h3>
+                <p class="muted">
+                    ${escapeHtml(error.message || String(error))}
+                </p>
+            </div>
+        `;
+    }
+});
 
 </script>
 

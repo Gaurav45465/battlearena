@@ -274,32 +274,64 @@ let matches = [];
 
 /* LOAD TOURNAMENTS */
 
+/* LOAD TOURNAMENTS */
+
 async function loadMatches() {
 
-  const { data, error } = await supabaseClient
-    .from("tournaments")
-    .select("*")
-    .order("id", { ascending: true });
+  const grid = document.getElementById("matchesGrid");
 
-  if (error) {
-
-    console.error(error);
-
-    matchesGrid.innerHTML = `
-      <div class="card">
-        <h3>Unable to load matches</h3>
-        <p class="muted">
-          Database connection check karo.
-        </p>
-      </div>
-    `;
-
+  if (!grid) {
+    console.error("matchesGrid NOT FOUND");
     return;
   }
 
-  matches = data || [];
+  try {
 
-  render();
+    console.log("Loading tournaments...");
+
+    const { data, error } = await supabaseClient
+      .from("tournaments")
+      .select("*")
+      .order("id", { ascending: true });
+
+    console.log("Tournament data:", data);
+    console.log("Tournament error:", error);
+
+    if (error) {
+
+      console.error("TOURNAMENT ERROR:", error);
+
+      grid.innerHTML = `
+        <div class="card">
+          <h3>⚠️ Unable to load matches</h3>
+          <p class="muted">
+            ${escapeHtml(error.message || "Database error")}
+          </p>
+        </div>
+      `;
+
+      return;
+    }
+
+    matches = data || [];
+
+    console.log("Matches loaded:", matches);
+
+    await render();
+
+  } catch (error) {
+
+    console.error("LOAD MATCHES CRASH:", error);
+
+    grid.innerHTML = `
+      <div class="card">
+        <h3>⚠️ Match Loading Error</h3>
+        <p class="muted">
+          ${escapeHtml(error.message || String(error))}
+        </p>
+      </div>
+    `;
+  }
 }
 
 
